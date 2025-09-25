@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora del Triángulo de Oswald</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: visible;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #34495e;
+        }
+
+        .form-group input {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .chart-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            padding: 40px;
+            background: white;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .results-section {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            overflow: visible;
+            margin-bottom: 30px;
+        }
+
+        /* Fallback for older browsers */
+        @supports not (aspect-ratio: 1/1) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        .results-text {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .results-text pre {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            color: #2c3e50;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8e6cf 0%, #dcedc1 100%);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #27ae60;
+        }
+
+        .animation-fade {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 1px solid #ffeaa7;
+            font-size: 14px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .buttons {
+                justify-content: center;
+            }
+            
+            .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Calculadora del Triángulo de Oswald</h1>
+            <p>Análisis avanzado de combustión industrial</p>
+        </div>
+            
+            <div class="main-content">
+                <div class="input-section">
+                    <div class="card">
+                        <h3 class="card-title">📊 Composición del Combustible (g)</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="carbono">Carbono (C)</label>
+                                <input type="number" id="carbono" step="0.001" value="0.5">
+                            </div>
+                            <div class="form-group">
+                                <label for="hidrogeno">Hidrógeno (H)</label>
+                                <input type="number" id="hidrogeno" step="0.001" value="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label for="oxigeno">Oxígeno (O)</label>
+                                <input type="number" id="oxigeno" step="0.001" value="0.02">
+                            </div>
+                            <div class="form-group hidden">
+                                <label for="nitrogeno">Nitrógeno (N)</label>
+                                <input type="number" id="nitrogeno" step="0.001" value="0.026">
+                            </div>
+                            <div class="form-group hidden">
+                                <label for="azufre">Azufre (S)</label>
+                                <input type="number" id="azufre" step="0.001" value="0.03">
+                            </div>
+                            <div class="form-group hidden">
+                                <label for="agua">Agua (H₂O)</label>
+                                <input type="number" id="agua" step="0.001" value="0.01">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">🔬 Datos del Aparato de Orsat (%)</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="co2_orsat">CO₂</label>
+                                <input type="number" id="co2_orsat" step="0.01" value="12.0">
+                            </div>
+                            <div class="form-group">
+                                <label for="o2_orsat">O₂</label>
+                                <input type="number" id="o2_orsat" step="0.01" value="3.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="buttons">
+                        <button class="btn btn-primary" onclick="calcular()">🧮 Calcular</button>
+                        <button class="btn btn-success" onclick="mostrarGrafico()">📈 Ver Gráfico</button>
+                        <button class="btn btn-warning" id="btnFullscreen" onclick="toggleFullscreen()">🖵 Pantalla completa</button>
+                        <button class="btn btn-warning" onclick="limpiar()">🗑️ Limpiar</button>
+                    </div>
+                    
+                    <div id="warnings"></div>
+                </div>
+
+                <div class="results-section">
+                    <div class="chart-container">
+                        <canvas id="graficoTriangulo"></canvas>
+                        <div class="loading" id="loading">Generando gráfico...</div>
+                    </div>
+                    
+                    <div class="card results-text">
+                        <h3 class="card-title">📋 Resultados del Análisis</h3>
+                        <pre id="resultados">Presiona "Calcular" para ver los resultados...</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let chart = null;
+            let resultadosCalculados = null;
+            let isFullscreen = false;
+
+            class TrianguloOswaldWeb {
+                constructor() {
+                    this.combustible = {};
+                    this.orsat = {};
+                }
+
+                obtenerDatos() {
+                    this.combustible = {
+                        carbono: parseFloat(document.getElementById('carbono').value),
+                        hidrogeno: parseFloat(document.getElementById('hidrogeno').value),
+                        oxigeno: parseFloat(document.getElementById('oxigeno').value),
+                        nitrogeno: parseFloat(document.getElementById('nitrogeno').value),
+                        azufre: parseFloat(document.getElementById('azufre').value),
+                        agua: parseFloat(document.getElementById('agua').value)
+                    };
+
+                    this.orsat = {
+                        co2: parseFloat(document.getElementById('co2_orsat').value),
+                        o2: parseFloat(document.getElementById('o2_orsat').value)
+                    };
+                }
+
+                calcularHidrogenoDisponible() {
+                    return this.combustible.hidrogeno - this.combustible.oxigeno / 8;
+                }
+
+                calcularOxigenoMinimoCompleta(hDisponible) {
+                    return 1.8666 * this.combustible.carbono + 5.55 * hDisponible;
+                }
+
+                calcularOxigenoMinimoIncompleta(hDisponible) {
+                    return 0.933 * this.combustible.carbono + 5.55 * hDisponible;
+                }
+
+                calcularKCO2(o2Completa, eta = 1.0) {
+                    const numerador = 1.866 * this.combustible.carbono;
+                    const denominador = numerador + o2Completa * (4.76 / eta - 1);
+                    return numerador / denominador;
+                }
+
+                calcularPCO(o2Completa, o2Incompleta, eta = 1.0) {
+                    const numerador = 1.866 * this.combustible.carbono;
+                    const denominador = numerador + o2Completa * (4.76 / eta) - o2Incompleta;
+                    return numerador / denominador;
+                }
+
+                calcularQO2(o2Completa, o2Incompleta, eta = 1.0) {
+                    const numerador = o2Completa / eta - o2Incompleta;
+                    const denominador = 1.866 * this.combustible.carbono + o2Completa * (4.76 / eta) - o2Incompleta;
+                    return numerador / denominador;
+                }
+
+                calcularTodosLosParametros() {
+                    this.obtenerDatos();
+
+                    const hDisponible = this.calcularHidrogenoDisponible();
+                    const o2Completa = this.calcularOxigenoMinimoCompleta(hDisponible);
+                    const o2Incompleta = this.calcularOxigenoMinimoIncompleta(hDisponible);
+
+                    const kCO2 = this.calcularKCO2(o2Completa);
+                    const pCO = this.calcularPCO(o2Completa, o2Incompleta);
+                    const qO2 = this.calcularQO2(o2Completa, o2Incompleta);
+
+                    // Punto de intersección
+                    const xInterseccion = (kCO2 * qO2) / (kCO2 + qO2 * (kCO2 / 0.21));
+                    const coMax = kCO2 * (1 - xInterseccion / 0.21);
+
+                    return {
+                        hidrogenoDisponible: hDisponible,
+                        oxigenoCompleta: o2Completa,
+                        oxigenoIncompleta: o2Incompleta,
+                        kCO2: kCO2,
+                        pCO: pCO,
+                        qO2: qO2,
+                        puntoC: [0, kCO2],
+                        puntoD: [qO2, 0],
+                        puntoInterseccion: [xInterseccion, coMax],
+                        puntoExperimental: [this.orsat.o2 / 100, this.orsat.co2 / 100]
+                    };
+                }
+            }
+
+            const calculadora = new TrianguloOswaldWeb();
+
+            function validateInputs() {
+                const warnings = [];
+                
+                // Validate composition inputs
+                const compositionInputs = ['carbono', 'hidrogeno', 'oxigeno', 'azufre', 'agua', 'nitrogeno'];
+                compositionInputs.forEach(id => {
+                    const input = document.getElementById(id);
+                    let value = parseFloat(input.value);
+                    if (isNaN(value) || value < 0) {
+                        input.value = 0;
+                        warnings.push(`${id.charAt(0).toUpperCase() + id.slice(1)} debe ser un número no negativo. Se estableció en 0.`);
+                    }
+                });
+
+                // Validate and clamp Orsat inputs
+                const co2Input = document.getElementById('co2_orsat');
+                const o2Input = document.getElementById('o2_orsat');
+                
+                let co2Value = parseFloat(co2Input.value);
+                let o2Value = parseFloat(o2Input.value);
+
+                if (isNaN(co2Value) || co2Value < 0) {
+                    co2Input.value = 0;
+                    warnings.push('CO₂ Orsat debe ser un número no negativo. Se estableció en 0.');
+                } else if (co2Value > 21) {
+                    co2Input.value = 21;
+                    warnings.push('CO₂ Orsat se limitó al máximo de 21%.');
+                }
+
+                if (isNaN(o2Value) || o2Value < 0) {
+                    o2Input.value = 0;
+                    warnings.push('O₂ Orsat debe ser un número no negativo. Se estableció en 0.');
+                } else if (o2Value > 21) {
+                    o2Input.value = 21;
+                    warnings.push('O₂ Orsat se limitó al máximo de 21%.');
+                }
+
+                // Display warnings
+                const warningsDiv = document.getElementById('warnings');
+                if (warnings.length > 0) {
+                    warningsDiv.innerHTML = `<div class="warning">${warnings.join('<br>')}</div>`;
+                } else {
+                    warningsDiv.innerHTML = '';
+                }
+
+                return warnings.length === 0;
+            }
+
+            function calcular() {
+                try {
+                    validateInputs();
+                    resultadosCalculados = calculadora.calcularTodosLosParametros();
+                    mostrarResultados();
+                    document.querySelector('.results-text').classList.add('animation-fade');
+                } catch (error) {
+                    alert('Error en el cálculo: ' + error.message);
+                }
+            }
+
+            function mostrarResultados() {
+                if (!resultadosCalculados) return;
+
+                const r = resultadosCalculados;
+                const resultadoStr = `
+═══ RESULTADOS DEL ANÁLISIS DEL TRIÁNGULO DE OSWALD ═══
+
+📊 DATOS DE ENTRADA:
+Combustible (g):
+  • Carbono: ${calculadora.combustible.carbono.toFixed(3)}
+  • Hidrógeno: ${calculadora.combustible.hidrogeno.toFixed(3)}
+  • Oxígeno: ${calculadora.combustible.oxigeno.toFixed(3)}
+  • Nitrógeno: ${calculadora.combustible.nitrogeno.toFixed(3)}
+  • Azufre: ${calculadora.combustible.azufre.toFixed(3)}
+  • Agua: ${calculadora.combustible.agua.toFixed(3)}
+
+Orsat (%):
+  • CO₂: ${calculadora.orsat.co2.toFixed(2)}
+  • O₂: ${calculadora.orsat.o2.toFixed(2)}
+
+⚙️ CÁLCULOS INTERMEDIOS:
+  • Hidrógeno disponible: ${r.hidrogenoDisponible.toFixed(6)} g
+  • Oxígeno mínimo (combustión completa): ${r.oxigenoCompleta.toFixed(6)} g
+  • Oxígeno mínimo (combustión incompleta): ${r.oxigenoIncompleta.toFixed(6)} g
+
+🎯 PUNTOS DEL TRIÁNGULO:
+  • Punto A (21% O₂, 0% CO₂): (0.210, 0.000)
+  • Punto C (0% O₂, máx CO₂): (${r.puntoC[0].toFixed(3)}, ${r.puntoC[1].toFixed(3)})
+  • Punto D (máx O₂, 0% CO₂): (${r.puntoD[0].toFixed(3)}, ${r.puntoD[1].toFixed(3)})
+  • Punto de intersección: (${r.puntoInterseccion[0].toFixed(3)}, ${r.puntoInterseccion[1].toFixed(3)})
+
+📈 PORCENTAJES CALCULADOS:
+  • K% CO₂ (combustión completa): ${r.kCO2.toFixed(4)} (${(r.kCO2 * 100).toFixed(2)}%)
+  • P% CO (combustión incompleta): ${r.pCO.toFixed(4)} (${(r.pCO * 100).toFixed(2)}%)
+  • Q% O₂ libre: ${r.qO2.toFixed(4)} (${(r.qO2 * 100).toFixed(2)}%)
+
+🔬 PUNTO EXPERIMENTAL (ORSAT):
+  • Coordenadas: (${r.puntoExperimental[0].toFixed(3)}, ${r.puntoExperimental[1].toFixed(3)})
+  • Ubicación: ${evaluarCombustion(r)}
+
+🔥 ANÁLISIS DE LA COMBUSTIÓN:
+${analizarEficiencia(r)}
+                `;
+
+                document.getElementById('resultados').textContent = resultadoStr;
+            }
+
+            function evaluarCombustion(resultados) {
+                const puntoExp = resultados.puntoExperimental;
+                const puntoC = resultados.puntoC;
+
+                if (Math.abs(puntoExp[1] - puntoC[1] * (1 - puntoExp[0] / 0.21)) < 0.01) {
+                    return "Sobre la línea AC - Combustión completa";
+                }
+
+                if (puntoExp[1] > puntoC[1] * (1 - puntoExp[0] / 0.21)) {
+                    return "Por encima de AC - Combustión con defecto de aire";
+                }
+
+                return "Por debajo de AC - Combustión con exceso de aire";
+            }
+
+            function analizarEficiencia(resultados) {
+                const puntoExp = resultados.puntoExperimental;
+                let analisis = [];
+
+                if (puntoExp[0] > 0.05) {
+                    analisis.push("• Alto contenido de O₂ indica exceso de aire significativo");
+                    analisis.push("• Esto puede reducir la eficiencia térmica");
+                } else if (puntoExp[0] < 0.02) {
+                    analisis.push("• Bajo contenido de O₂ puede indicar combustión incompleta");
+                    analisis.push("• Riesgo de formación de CO");
+                } else {
+                    analisis.push("• Contenido de O₂ en rango aceptable");
+                }
+
+                if (puntoExp[1] > 0.15) {
+                    analisis.push("• Alto contenido de CO₂ indica buena combustión");
+                } else if (puntoExp[1] < 0.08) {
+                    analisis.push("• Bajo contenido de CO₂ puede indicar dilución por exceso de aire");
+                }
+
+                return analisis.join('\n');
+            }
+
+            function mostrarGrafico() {
+                if (!resultadosCalculados) {
+                    alert('Primero debe realizar los cálculos');
+                    return;
+                }
+
+                validateInputs();
+                generarGrafico();
+            }
+
+            function generarGrafico() {
+                const loading = document.getElementById('loading');
+                loading.classList.add('active');
+
+                setTimeout(() => {
+                    const ctx = document.getElementById('graficoTriangulo').getContext('2d');
+                    
+                    if (chart) {
+                        chart.destroy();
+                    }
+
+                    const r = resultadosCalculados;
+                    const puntoA = [0.21, 0];
+                    const puntoC = r.puntoC;
+                    const puntoD = r.puntoD;
+                    const puntoInt = r.puntoInterseccion;
+                    const puntoExp = r.puntoExperimental;
+
+                    chart = new Chart(ctx, {
+                        type: 'scatter',
+                        data: {
+                            datasets: [
+                                {
+                                    label: 'Combustión completa (A-C)',
+                                    data: [{ x: puntoA[0], y: puntoA[1] }, { x: puntoC[0], y: puntoC[1] }],
+                                    borderColor: 'rgb(255, 99, 132)',
+                                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                    showLine: true,
+                                    pointRadius: 6,
+                                    borderWidth: 3
+                                },
+                                {
+                                    label: 'Combustión incompleta (C-D)',
+                                    data: [{ x: puntoC[0], y: puntoC[1] }, { x: puntoD[0], y: puntoD[1] }],
+                                    borderColor: 'rgb(54, 162, 235)',
+                                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                    showLine: true,
+                                    pointRadius: 6,
+                                    borderWidth: 3
+                                },
+                                {
+                                    label: 'Línea límite CO',
+                                    data: [{ x: puntoInt[0], y: puntoInt[1] }, { x: puntoD[0], y: puntoD[1] }],
+                                    borderColor: 'rgb(75, 192, 192)',
+                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                    showLine: true,
+                                    pointRadius: 6,
+                                    borderWidth: 3
+                                },
+                                {
+                                    label: `Punto A (21% O₂)`,
+                                    data: [{ x: puntoA[0], y: puntoA[1] }],
+                                    backgroundColor: 'rgb(0, 0, 0)',
+                                    pointRadius: 8,
+                                    showLine: false
+                                },
+                                {
+                                    label: `Punto C (${puntoC[1].toFixed(3)} CO₂)`,
+                                    data: [{ x: puntoC[0], y: puntoC[1] }],
+                                    backgroundColor: 'rgb(255, 99, 132)',
+                                    pointRadius: 8,
+                                    showLine: false
+                                },
+                                {
+                                    label: `Punto D (${puntoD[0].toFixed(3)} O₂)`,
+                                    data: [{ x: puntoD[0], y: puntoD[1] }],
+                                    backgroundColor: 'rgb(54, 162, 235)',
+                                    pointRadius: 8,
+                                    showLine: false
+                                },
+                                {
+                                    label: `Experimental (${puntoExp[0].toFixed(3)}, ${puntoExp[1].toFixed(3)})`,
+                                    data: [{ x: puntoExp[0], y: puntoExp[1] }],
+                                    backgroundColor: 'rgb(255, 206, 86)',
+                                    borderColor: 'rgb(255, 159, 64)',
+                                    pointRadius: 12,
+                                    borderWidth: 3,
+                                    showLine: false
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            aspectRatio: 1,
+                            layout: {
+                                padding: {
+                                    top: 10,
+                                    right: 15,
+                                    bottom: 45,
+                                    left: 45
+                                }
+                            },
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Triángulo de Oswald - Análisis de Combustión',
+                                    font: { size: 16, weight: 'bold' },
+                                    padding: { bottom: 15 }
+                                },
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        padding: 15,
+                                        usePointStyle: true
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    type: 'linear',
+                                    position: 'bottom',
+                                    title: {
+                                        display: true,
+                                        text: '% O₂ (volumen)'
+                                    },
+                                    min: 0,
+                                    max: 0.21,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return Math.round(value * 100) + '%';
+                                        },
+                                        stepSize: 0.05
+                                    },
+                                    grid: { display: true }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: '% CO₂ (volumen)'
+                                    },
+                                    min: 0,
+                                    max: 0.21,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return Math.round(value * 100) + '%';
+                                        },
+                                        stepSize: 0.05
+                                    },
+                                    grid: { display: true }
+                                }
+                            },
+                            interaction: {
+                                intersect: false,
+                                mode: 'point'
+                            }
+                        },
+                        plugins: [{
+                            id: 'squareAspect',
+                            afterLayout: function(chart) {
+                                const chartArea = chart.chartArea;
+                                const width = chartArea.right - chartArea.left;
+                                const height = chartArea.bottom - chartArea.top;
+                                
+                                if (Math.abs(width - height) > 1) {
+                                    const size = Math.min(width, height);
+                                    const centerX = (chartArea.left + chartArea.right) / 2;
+                                    const centerY = (chartArea.top + chartArea.bottom) / 2;
+                                    
+                                    chart.chartArea.left = centerX - size / 2;
+                                    chart.chartArea.right = centerX + size / 2;
+                                    chart.chartArea.top = centerY - size / 2;
+                                    chart.chartArea.bottom = centerY + size / 2;
+                                }
+                            }
+                        }]
+                    });
+
+                    loading.classList.remove('active');
+                }, 500);
+            }
+
+            function toggleFullscreen() {
+                const chartContainer = document.querySelector('.chart-container');
+                const btn = document.getElementById('btnFullscreen');
+                
+                if (!isFullscreen) {
+                    // Enter fullscreen
+                    chartContainer.classList.add('fullscreen');
+                    btn.textContent = '🗗 Salir pantalla completa';
+                    isFullscreen = true;
+                    
+                    // Resize chart after a short delay to ensure container is resized
+                    setTimeout(() => {
+                        if (chart) {
+                            chart.resize();
+                            chart.update('none');
+                        }
+                    }, 100);
+                    
+                } else {
+                    // Exit fullscreen
+                    chartContainer.classList.remove('fullscreen');
+                    btn.textContent = '🖵 Pantalla completa';
+                    isFullscreen = false;
+                    
+                    // Resize chart after a short delay
+                    setTimeout(() => {
+                        if (chart) {
+                            chart.resize();
+                            chart.update('none');
+                        }
+                    }, 100);
+                }
+            }
+
+            function limpiar() {
+                document.getElementById('resultados').textContent = 'Presiona "Calcular" para ver los resultados...';
+                document.getElementById('warnings').innerHTML = '';
+                resultadosCalculados = null;
+                
+                if (chart) {
+                    chart.destroy();
+                    chart = null;
+                }
+                
+                // Restaurar valores por defecto
+                document.getElementById('carbono').value = '0.5';
+                document.getElementById('hidrogeno').value = '0.1';
+                document.getElementById('oxigeno').value = '0.02';
+                document.getElementById('nitrogeno').value = '0.026';
+                document.getElementById('azufre').value = '0.03';
+                document.getElementById('agua').value = '0.01';
+                document.getElementById('co2_orsat').value = '12.0';
+                document.getElementById('o2_orsat').value = '3.0';
+            }
+
+            // ResizeObserver for chart container to maintain square aspect
+        let chartResizeObserver;
+        
+        function initChartResizeObserver() {
+            const chartContainer = document.querySelector('.chart-container');
+            
+            if (window.ResizeObserver && !chartContainer.style.aspectRatio) {
+                chartResizeObserver = new ResizeObserver(entries => {
+                    for (let entry of entries) {
+                        const { width } = entry.contentRect;
+                        entry.target.style.height = width + 'px';
+                        
+                        if (chart) {
+                            clearTimeout(resizeTimeout);
+                            resizeTimeout = setTimeout(() => {
+                                chart.resize();
+                                chart.update('none');
+                            }, 100);
+                        }
+                    }
+                });
+                chartResizeObserver.observe(chartContainer);
+            }
+        }
+
+        // Handle window resize while maintaining aspect ratio
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+                if (chart) {
+                    chart.resize();
+                    chart.update('none');
+                }
+            }, 250);
+        });
+
+            // Handle ESC key to exit fullscreen
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && isFullscreen) {
+                    toggleFullscreen();
+                }
+            });
+
+            // Inicializar con cálculo automático
+        window.addEventListener('load', () => {
+            initChartResizeObserver();
+            setTimeout(calcular, 1000);
+        });
+        </script>
+    </body>
+</html>
