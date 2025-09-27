@@ -45,6 +45,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
+            justify-items: center;
             margin-bottom: 30px;
         }
 
@@ -156,7 +157,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             overflow: visible;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
         .canvas-wrapper {
@@ -886,11 +891,11 @@
             const yTitleWidth = ctx.measureText(trans.axisCO2).width;
             const xTitleWidth = ctx.measureText(trans.axisO2).width;
             
-            // Calculate dynamic margins to prevent clipping
-            const marginLeft = Math.max(yLabelWidth + 20, yTitleWidth / 2) + 30;
-            const marginRight = 30;
-            const marginTop = 40;
-            const marginBottom = Math.max(50, xTitleWidth / 2) + 40;
+            // Calculate dynamic margins with extra space for point labels
+            const marginLeft = Math.max(yLabelWidth + 20, yTitleWidth / 2) + 50;
+            const marginRight = 50; // Increased for point labels
+            const marginTop = 60; // Increased for point labels above
+            const marginBottom = Math.max(60, xTitleWidth / 2) + 50; // Increased for point labels below
             
             // Calculate available space and ensure 1:1 aspect ratio
             const availableWidth = canvas.width - marginLeft - marginRight;
@@ -979,26 +984,26 @@
             const canvasIntersection = toCanvasCoords(calculationResults.intersection.x, calculationResults.intersection.y);
             const canvasPerpIntersection = toCanvasCoords(calculationResults.perpendicular_intersection.x, calculationResults.perpendicular_intersection.y);
             
-            // Line AC (Complete combustion line)
+            // Line AC (Complete combustion line) - High contrast
             ctx.strokeStyle = '#2266cc';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 2.5;
             ctx.setLineDash([]);
             ctx.beginPath();
             ctx.moveTo(canvasA.x, canvasA.y);
             ctx.lineTo(canvasC.x, canvasC.y);
             ctx.stroke();
             
-            // Line CD (Incomplete combustion line)
+            // Line CD (Incomplete combustion line) - High contrast
             ctx.strokeStyle = '#cc6622';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 2.5;
             ctx.beginPath();
             ctx.moveTo(canvasC.x, canvasC.y);
             ctx.lineTo(canvasD.x, canvasD.y);
             ctx.stroke();
             
-            // Perpendicular Line from D to AC (green dashed)
+            // Perpendicular Line from D to AC (green dashed) - High contrast
             ctx.strokeStyle = '#2ecf6e';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.setLineDash([8, 4]);
             ctx.beginPath();
             ctx.moveTo(canvasD.x, canvasD.y);
@@ -1006,8 +1011,8 @@
             ctx.stroke();
             ctx.setLineDash([]);
             
-            // Draw points with semantic labels
-            function drawPoint(point, color, label, semanticLabel, size = 8) {
+            // Draw points with simplified captions
+            function drawPoint(point, color, label, size = 8) {
                 const canvasPoint = toCanvasCoords(point.x, point.y);
                 
                 ctx.fillStyle = color;
@@ -1019,24 +1024,25 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                // Label
+                // Short label above the point
                 ctx.fillStyle = '#333';
                 ctx.font = 'bold 12px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText(label, canvasPoint.x, canvasPoint.y - 15);
                 
-                // Semantic description instead of raw coordinates
+                // Coordinate values below the point (convert back to percentages for display)
                 ctx.font = '10px Arial';
-                ctx.fillText(semanticLabel, canvasPoint.x, canvasPoint.y + 25);
+                const displayX = (point.x * 100).toFixed(1);
+                const displayY = (point.y * 100).toFixed(1);
+                ctx.fillText(`(${displayX}%, ${displayY}%)`, canvasPoint.x, canvasPoint.y + 25);
             }
             
-            // Draw all points with semantic labels (excluding intersection point)
-            const orsat = calculationResults.orsat;
-            drawPoint(calculationResults.pointA, '#ff4444', 'A', 'A (21% O₂, 0% CO₂)', 8);
-            drawPoint(calculationResults.pointC, '#4444ff', 'C', `C (0% O₂, ${calculationResults.kCO2}% CO₂)`, 8);
-            drawPoint(calculationResults.pointD, '#44ff44', 'D', `D (${calculationResults.qO2}% O₂, 0% CO₂)`, 8);
-            drawPoint(calculationResults.experimentalPoint, '#ff8800', 'Exp', `Experimental (O₂=${orsat.O2}%, CO₂=${orsat.CO2}%)`, 10);
-            drawPoint(calculationResults.perpendicular_intersection, '#2ecf6e', 'D⊥', 'D⊥ (Perpendicular)', 6);
+            // Draw all points with simplified captions (excluding intersection point) - High contrast
+            drawPoint(calculationResults.pointA, '#ff4444', 'A', 6);
+            drawPoint(calculationResults.pointC, '#4444ff', 'C', 6);
+            drawPoint(calculationResults.pointD, '#44ff44', 'D', 6);
+            drawPoint(calculationResults.experimentalPoint, '#ff8800', 'Exp', 8);
+            drawPoint(calculationResults.perpendicular_intersection, '#2ecf6e', 'D⊥', 6);
         }
 
         function downloadJPG() {
