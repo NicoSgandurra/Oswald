@@ -21,12 +21,12 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 15px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             color: white;
         }
 
@@ -44,17 +44,17 @@
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            justify-items: center;
-            margin-bottom: 30px;
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
         .panel {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             transition: transform 0.3s ease;
+            height: fit-content;
         }
 
         .panel:hover {
@@ -71,7 +71,7 @@
 
         .input-group {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -83,7 +83,7 @@
 
         .input-field label {
             font-weight: 600;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             color: #4a5568;
             font-size: 0.9rem;
         }
@@ -91,8 +91,8 @@
         .input-field input {
             padding: 10px;
             border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
             transition: border-color 0.3s ease;
         }
 
@@ -104,22 +104,22 @@
 
         .controls {
             display: flex;
-            gap: 10px;
+            gap: 12px;
+            margin-top: 20px;
             flex-wrap: wrap;
             justify-content: center;
-            margin-top: 20px;
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .btn-primary {
@@ -142,16 +142,22 @@
             color: white;
         }
 
-        .btn:hover {
+        .btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
         }
 
         .graph-container {
             grid-column: 1 / -1;
             background: white;
             border-radius: 15px;
-            padding: 15px 25px 25px 25px; /* Reduced top padding */
+            padding: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             text-align: center;
             display: flex;
@@ -159,9 +165,9 @@
             align-items: center;
             justify-content: center;
             overflow: visible;
+            margin: 20px auto;
+            max-width: 900px;
             width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
         }
 
         .canvas-wrapper {
@@ -170,9 +176,10 @@
             align-items: center;
             aspect-ratio: 1 / 1;
             max-width: 100%;
-            max-height: 70vh;
-            margin: 10px 0; /* Reduced top margin */
+            max-height: 75vh;
+            margin: 15px auto;
             overflow: visible;
+            width: fit-content;
         }
 
         #oswaldCanvas {
@@ -183,6 +190,7 @@
             max-height: 100%;
             width: auto;
             height: auto;
+            cursor: crosshair;
         }
 
         .graph-container.fullscreen {
@@ -211,15 +219,16 @@
             grid-column: 1 / -1;
             background: white;
             border-radius: 15px;
-            padding: 25px;
+            padding: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-top: 10px;
         }
 
         .results-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
         .result-item {
@@ -313,10 +322,11 @@
             border-radius: 5px;
         }
 
-        .legend-color {
-            width: 16px;
-            height: 16px;
+        .legend-item .legend-color {
+            width: 20px;
+            height: 20px;
             border-radius: 3px;
+            margin-right: 10px;
         }
 
         .legend-line {
@@ -324,6 +334,28 @@
             height: 3px;
             border-radius: 2px;
         }
+
+        /* Tooltip styles */
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            max-width: 200px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .chart-tooltip.visible {
+            opacity: 1;
+        }
+
 
         .language-toggle {
             position: absolute;
@@ -421,8 +453,8 @@
                     <button class="btn btn-primary" onclick="calculateOswald()" id="calc-btn">Calcular</button>
                     <button class="btn btn-success" onclick="showGraph()" id="graph-btn">Ver Gráfico</button>
                     <button class="btn btn-secondary" onclick="clearInputs()" id="clear-btn">Limpiar</button>
-                    <button class="btn btn-warning" onclick="toggleFullscreen()" id="fullscreen-btn">Pantalla Completa</button>
-                    <button class="btn btn-primary" onclick="downloadJPG()" id="download-btn">Descargar JPG</button>
+                    <button class="btn btn-warning" onclick="toggleFullscreen()" id="fullscreen-btn" style="display: none;">Pantalla Completa</button>
+                    <button class="btn btn-primary" onclick="downloadJPG()" id="download-btn" style="display: none;">Descargar JPG</button>
                 </div>
             </div>
 
@@ -430,6 +462,7 @@
             <div class="graph-container" id="graphContainer" style="display: none;">
                 <div class="canvas-wrapper">
                     <canvas id="oswaldCanvas" width="600" height="600"></canvas>
+                    <div class="chart-tooltip" id="chartTooltip"></div>
                 </div>
                 <div class="legend">
                     <div class="legend-item">
@@ -869,6 +902,9 @@
             
             document.getElementById('graphContainer').style.display = 'block';
             drawOswaldTriangle();
+            
+            // Reinitialize tooltips after redrawing
+            setTimeout(initializeTooltips, 50);
         }
 
         function drawOswaldTriangle() {
@@ -891,11 +927,11 @@
             const yTitleWidth = ctx.measureText(trans.axisCO2).width;
             const xTitleWidth = ctx.measureText(trans.axisO2).width;
             
-            // Calculate dynamic margins with extra space for point labels
-            const marginLeft = Math.max(yLabelWidth + 20, yTitleWidth / 2) + 50;
-            const marginRight = 50; // Increased for point labels
-            const marginTop = 60; // Increased for point labels above
-            const marginBottom = Math.max(60, xTitleWidth / 2) + 50; // Increased for point labels below
+            // Calculate optimized margins - reduced dead space
+            const marginLeft = Math.max(yLabelWidth + 15, yTitleWidth / 2) + 35;
+            const marginRight = 35; // Reduced dead space
+            const marginTop = 45; // Reduced for tighter layout
+            const marginBottom = Math.max(45, xTitleWidth / 2) + 35; // Reduced dead space
             
             // Calculate available space and ensure 1:1 aspect ratio
             const availableWidth = canvas.width - marginLeft - marginRight;
@@ -945,26 +981,31 @@
             ctx.font = '12px Arial';
             ctx.textAlign = 'center';
             
-            // X-axis labels (showing percentages)
+            // X-axis labels (showing percentages) - positioned closer
+            ctx.textAlign = 'center';
             for (let i = 0; i <= 21; i += 3) {
                 const x = startX + (i / 21) * graphWidth;
-                ctx.fillText(i.toString(), x, startY + graphHeight + 20);
+                ctx.fillText(i.toString(), x, startY + graphHeight + 15);
             }
             
-            // Y-axis labels (showing percentages)
+            // Y-axis labels (showing percentages) - positioned closer
             ctx.textAlign = 'right';
             for (let i = 0; i <= 21; i += 3) {
                 const y = startY + graphHeight - (i / 21) * graphHeight;
-                ctx.fillText(i.toString(), startX - 10, y + 4);
+                ctx.fillText(i.toString(), startX - 8, y + 4);
             }
             
-            // Axis titles (using translation system)
+            // Axis titles (using translation system) - equidistant from axes
+            const axisDistance = 30; // Same distance for both axes
+            
             ctx.textAlign = 'center';
             ctx.font = '16px Arial';
-            ctx.fillText(trans.axisO2, startX + graphWidth/2, startY + graphHeight + marginBottom - 10);
+            // O₂ label positioned at same distance from X-axis as CO₂ from Y-axis
+            ctx.fillText(trans.axisO2, startX + graphWidth/2, startY + graphHeight + axisDistance);
             
             ctx.save();
-            ctx.translate(marginLeft - 20, startY + graphHeight/2);
+            // CO₂ label positioned at same distance from Y-axis as O₂ from X-axis
+            ctx.translate(startX - axisDistance, startY + graphHeight/2);
             ctx.rotate(-Math.PI / 2);
             ctx.fillText(trans.axisCO2, 0, 0);
             ctx.restore();
@@ -1011,7 +1052,7 @@
             ctx.stroke();
             ctx.setLineDash([]);
             
-            // Draw points with simplified captions
+            // Draw points with only short labels (tooltips will show details)
             function drawPoint(point, color, label, size = 8) {
                 const canvasPoint = toCanvasCoords(point.x, point.y);
                 
@@ -1024,25 +1065,54 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                // Short label above the point
+                // Only short label above the point
                 ctx.fillStyle = '#333';
                 ctx.font = 'bold 12px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText(label, canvasPoint.x, canvasPoint.y - 15);
                 
-                // Coordinate values below the point (convert back to percentages for display)
-                ctx.font = '10px Arial';
-                const displayX = (point.x * 100).toFixed(1);
-                const displayY = (point.y * 100).toFixed(1);
-                ctx.fillText(`(${displayX}%, ${displayY}%)`, canvasPoint.x, canvasPoint.y + 25);
+                // Store point data for tooltip functionality
+                return {
+                    x: canvasPoint.x,
+                    y: canvasPoint.y,
+                    size: size,
+                    label: label,
+                    coordinates: point,
+                    color: color
+                };
             }
             
-            // Draw all points with simplified captions (excluding intersection point) - High contrast
-            drawPoint(calculationResults.pointA, '#ff4444', 'A', 6);
-            drawPoint(calculationResults.pointC, '#4444ff', 'C', 6);
-            drawPoint(calculationResults.pointD, '#44ff44', 'D', 6);
-            drawPoint(calculationResults.experimentalPoint, '#ff8800', 'Exp', 8);
-            drawPoint(calculationResults.perpendicular_intersection, '#2ecf6e', 'D⊥', 6);
+            // Draw all points and store data for tooltips (excluding intersection point) - High contrast
+            const pointsData = [];
+            const orsat = calculationResults.orsat;
+            
+            pointsData.push({
+                ...drawPoint(calculationResults.pointA, '#ff4444', 'A', 6),
+                description: `Punto A (21% O₂, 0% CO₂)<br>Máximo exceso de aire`
+            });
+            
+            pointsData.push({
+                ...drawPoint(calculationResults.pointC, '#4444ff', 'C', 6),
+                description: `Punto C (0% O₂, ${calculationResults.kCO2}% CO₂)<br>Combustión completa sin exceso de aire`
+            });
+            
+            pointsData.push({
+                ...drawPoint(calculationResults.pointD, '#44ff44', 'D', 6),
+                description: `Punto D (${calculationResults.qO2}% O₂, 0% CO₂)<br>Límite de combustión incompleta`
+            });
+            
+            pointsData.push({
+                ...drawPoint(calculationResults.experimentalPoint, '#ff8800', 'Exp', 8),
+                description: `Punto Experimental<br>O₂: ${orsat.O2}% | CO₂: ${orsat.CO2}%<br>Datos de análisis Orsat`
+            });
+            
+            pointsData.push({
+                ...drawPoint(calculationResults.perpendicular_intersection, '#2ecf6e', 'D⊥', 6),
+                description: `Punto D⊥<br>Intersección perpendicular<br>Para análisis de combustión`
+            });
+            
+            // Store points data globally for tooltip functionality
+            window.chartPointsData = pointsData;
         }
 
         function downloadJPG() {
@@ -1161,6 +1231,63 @@
             }
         }
 
+        // Tooltip functionality
+        function initializeTooltips() {
+            const canvas = document.getElementById('oswaldCanvas');
+            const tooltip = document.getElementById('chartTooltip');
+            
+            if (!canvas || !tooltip) return;
+            
+            canvas.addEventListener('mousemove', function(e) {
+                if (!window.chartPointsData) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // Check if mouse is over any point
+                let hoveredPoint = null;
+                for (const point of window.chartPointsData) {
+                    const distance = Math.sqrt(
+                        Math.pow(mouseX - point.x, 2) + Math.pow(mouseY - point.y, 2)
+                    );
+                    
+                    if (distance <= point.size + 5) { // 5px tolerance
+                        hoveredPoint = point;
+                        break;
+                    }
+                }
+                
+                if (hoveredPoint) {
+                    // Show tooltip with correct positioning considering scroll
+                    tooltip.innerHTML = hoveredPoint.description;
+                    
+                    // Get canvas position relative to the document
+                    const canvasRect = canvas.getBoundingClientRect();
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                    
+                    // Position tooltip below and to the right of cursor
+                    const tooltipX = canvasRect.left + scrollLeft + mouseX + 10;
+                    const tooltipY = canvasRect.top + scrollTop + mouseY + 10;
+                    
+                    tooltip.style.left = tooltipX + 'px';
+                    tooltip.style.top = tooltipY + 'px';
+                    tooltip.classList.add('visible');
+                    canvas.style.cursor = 'pointer';
+                } else {
+                    // Hide tooltip
+                    tooltip.classList.remove('visible');
+                    canvas.style.cursor = 'crosshair';
+                }
+            });
+            
+            canvas.addEventListener('mouseleave', function() {
+                tooltip.classList.remove('visible');
+                canvas.style.cursor = 'crosshair';
+            });
+        }
+
         // Initialize with sample data
         window.addEventListener('load', function() {
             // Load saved language or default to Spanish
@@ -1172,6 +1299,9 @@
             // Auto-calculate and show graph with sample data
             calculateOswald();
             showGraph();
+            
+            // Initialize tooltips after graph is shown
+            setTimeout(initializeTooltips, 100);
         });
 
         // Handle window resize in fullscreen
