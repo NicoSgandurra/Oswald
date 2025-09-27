@@ -377,8 +377,12 @@
                         <span>Line CD (Incomplete Combustion)</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-line" style="background: #22cc66;"></div>
-                        <span>CO Limit Line</span>
+                        <div class="legend-line" style="background: #2ecf6e;"></div>
+                        <span>Perpendicular D⊥AC</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #2ecf6e;"></div>
+                        <span>Point D⊥ (Perpendicular Intersection)</span>
                     </div>
                 </div>
             </div>
@@ -476,23 +480,59 @@
             // Calculate combustion efficiency
             const combustion_efficiency = (kCO2 / orsat.CO2) * 100;
             
-            // Oswald Triangle points calculation (correct definitions)
-            // Point A: (21% O2, 0% CO2) - Maximum excess air
-            const pointA = { x: 21, y: 0 };
+            // Oswald Triangle points calculation (using fractions 0-0.21)
+            // Convert percentages to fractions for proper math
+            const kCO2_frac = kCO2 / 100;
+            const qO2_frac = qO2 / 100;
+            const orsat_O2_frac = orsat.O2 / 100;
+            const orsat_CO2_frac = orsat.CO2 / 100;
             
-            // Point C: (0% O2, kCO2%) - Complete combustion, no excess air
-            const pointC = { x: 0, y: kCO2 };
+            // Point A: (0.21, 0) - Maximum excess air
+            const pointA = { x: 0.21, y: 0 };
             
-            // Point D: (qO2%, 0% CO2) - Incomplete combustion limit
-            const pointD = { x: qO2, y: 0 };
+            // Point C: (0, kCO2_frac) - Complete combustion, no excess air
+            const pointC = { x: 0, y: kCO2_frac };
+            
+            // Point D: (qO2_frac, 0) - Incomplete combustion limit
+            const pointD = { x: qO2_frac, y: 0 };
             
             // Experimental point from Orsat data
-            const experimentalPoint = { x: orsat.O2, y: orsat.CO2 };
+            const experimentalPoint = { x: orsat_O2_frac, y: orsat_CO2_frac };
             
-            // Calculate intersection point of AC line with experimental O2 level
-            // Line AC equation: y = kCO2 * (21 - x) / 21
-            const intersection_y = kCO2 * (21 - orsat.O2) / 21;
-            const intersection = { x: orsat.O2, y: intersection_y };
+            // Calculate perpendicular from D to AC line
+            // Slope of AC: m_AC = (kCO2_frac - 0) / (0 - 0.21) = -kCO2_frac / 0.21
+            const m_AC = kCO2_frac > 0 ? -kCO2_frac / 0.21 : 0;
+            
+            // Perpendicular slope: m_perp = -1 / m_AC = 0.21 / kCO2_frac
+            const m_perp = kCO2_frac > 1e-6 ? 0.21 / kCO2_frac : 0;
+            
+            // Line AC equation: y = m_AC * (x - 0.21)
+            // Line D⊥ equation: y = m_perp * (x - qO2_frac)
+            // Intersection: m_AC * (x - 0.21) = m_perp * (x - qO2_frac)
+            let perp_intersection_x, perp_intersection_y;
+            
+            if (Math.abs(m_AC - m_perp) > 1e-10) {
+                perp_intersection_x = (m_perp * qO2_frac - m_AC * 0.21) / (m_perp - m_AC);
+                perp_intersection_y = m_AC * (perp_intersection_x - 0.21);
+                
+                // Clamp to valid range [0, 0.21]
+                perp_intersection_x = Math.max(0, Math.min(0.21, perp_intersection_x));
+                perp_intersection_y = Math.max(0, Math.min(0.21, perp_intersection_y));
+            } else {
+                // Lines are parallel (shouldn't happen in normal cases)
+                perp_intersection_x = qO2_frac;
+                perp_intersection_y = 0;
+            }
+            
+            const perpendicular_intersection = { x: perp_intersection_x, y: perp_intersection_y };
+            
+            // Verify perpendicularity (for debugging)
+            const perpendicular_check = Math.abs(m_AC * m_perp + 1);
+            const is_perpendicular = perpendicular_check < 1e-6;
+            
+            // Original intersection for reference (AC line at experimental O2 level)
+            const intersection_y = kCO2_frac * (0.21 - orsat_O2_frac) / 0.21;
+            const intersection = { x: orsat_O2_frac, y: intersection_y };
 
             // Store results
             calculationResults = {
@@ -516,6 +556,11 @@
                 pointD,
                 experimentalPoint,
                 intersection,
+                perpendicular_intersection,
+                m_AC: m_AC.toFixed(6),
+                m_perp: m_perp.toFixed(6),
+                perpendicular_check: perpendicular_check.toFixed(8),
+                is_perpendicular,
                 total_composition: totalComposition.toFixed(2)
             };
 
@@ -588,7 +633,25 @@
                 </div>
                 <div class="result-item">
                     <div class="label">Intersection Point</div>
-                    <div class="value">(${calculationResults.intersection.x.toFixed(1)}, ${calculationResults.intersection.y.toFixed(1)})</div>
+                    <div class="value">(${calculationResults.intersection.x.toFixed(3)}, ${calculationResults.intersection.y.toFixed(3)})</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Perpendicular Intersection</div>
+                    <div class="value">(${calculationResults.perpendicular_intersection.x.toFixed(3)}, ${calculationResults.perpendicular_intersection.y.toFixed(3)})</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Slope AC (m_AC)</div>
+                    <div class="value">${calculationResults.m_AC}</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Slope Perpendicular (m_⊥)</div>
+                    <div class="value">${calculationResults.m_perp}</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Perpendicular Check</div>
+                    <div class="value" style="color: ${calculationResults.is_perpendicular ? '#22cc66' : '#cc2222'}">
+                        ${calculationResults.is_perpendicular ? '✓ Perpendicular' : '✗ Error'} (${calculationResults.perpendicular_check})
+                    </div>
                 </div>
             `;
         }
@@ -657,13 +720,13 @@
             ctx.font = '12px Arial';
             ctx.textAlign = 'center';
             
-            // X-axis labels
+            // X-axis labels (showing percentages)
             for (let i = 0; i <= 21; i += 3) {
                 const x = startX + (i / 21) * graphWidth;
                 ctx.fillText(i.toString(), x, startY + graphHeight + 20);
             }
             
-            // Y-axis labels
+            // Y-axis labels (showing percentages)
             ctx.textAlign = 'right';
             for (let i = 0; i <= 21; i += 3) {
                 const y = startY + graphHeight - (i / 21) * graphHeight;
@@ -681,11 +744,11 @@
             ctx.fillText('CO₂ (%)', 0, 0);
             ctx.restore();
             
-            // Convert coordinates to canvas coordinates
+            // Convert coordinates to canvas coordinates (now using 0-0.21 scale)
             function toCanvasCoords(x, y) {
                 return {
-                    x: startX + (x / 21) * graphWidth,
-                    y: startY + graphHeight - (y / 21) * graphHeight
+                    x: startX + (x / 0.21) * graphWidth,
+                    y: startY + graphHeight - (y / 0.21) * graphHeight
                 };
             }
             
@@ -694,6 +757,7 @@
             const canvasC = toCanvasCoords(calculationResults.pointC.x, calculationResults.pointC.y);
             const canvasD = toCanvasCoords(calculationResults.pointD.x, calculationResults.pointD.y);
             const canvasIntersection = toCanvasCoords(calculationResults.intersection.x, calculationResults.intersection.y);
+            const canvasPerpIntersection = toCanvasCoords(calculationResults.perpendicular_intersection.x, calculationResults.perpendicular_intersection.y);
             
             // Line AC (Complete combustion line)
             ctx.strokeStyle = '#2266cc';
@@ -712,13 +776,13 @@
             ctx.lineTo(canvasD.x, canvasD.y);
             ctx.stroke();
             
-            // CO Limit Line (from intersection to D)
-            ctx.strokeStyle = '#22cc66';
+            // Perpendicular Line from D to AC (green dashed)
+            ctx.strokeStyle = '#2ecf6e';
             ctx.lineWidth = 2;
             ctx.setLineDash([8, 4]);
             ctx.beginPath();
-            ctx.moveTo(canvasIntersection.x, canvasIntersection.y);
-            ctx.lineTo(canvasD.x, canvasD.y);
+            ctx.moveTo(canvasD.x, canvasD.y);
+            ctx.lineTo(canvasPerpIntersection.x, canvasPerpIntersection.y);
             ctx.stroke();
             ctx.setLineDash([]);
             
@@ -752,6 +816,7 @@
             drawPoint(calculationResults.pointD, '#44ff44', 'D', 8);
             drawPoint(calculationResults.experimentalPoint, '#ff8800', 'Exp', 10);
             drawPoint(calculationResults.intersection, '#8800ff', 'Int', 6);
+            drawPoint(calculationResults.perpendicular_intersection, '#2ecf6e', 'D⊥', 6);
             
             // Draw title
             ctx.fillStyle = '#333';
@@ -819,6 +884,10 @@
         window.addEventListener('load', function() {
             // Sample data is already set in HTML inputs
             console.log('Oswald Triangle Simulator loaded successfully!');
+            
+            // Auto-calculate and show graph with sample data
+            calculateOswald();
+            showGraph();
         });
 
         // Handle window resize in fullscreen
