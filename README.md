@@ -185,6 +185,6 @@ This project is provided as-is for educational and professional use in combustio
 
 ---
 
-**Created by**: Combustion Analysis Team  
-**Last Updated**: December 2024  
+**Created by**: Rubio, Pablo and Sgandurra, Nicolas
+**Last Updated**: 09-27-2025  
 **File Size**: ~45KB (complete single-file implementation)
