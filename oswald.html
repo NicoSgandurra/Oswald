@@ -54,7 +54,7 @@
             padding: 20px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             transition: transform 0.3s ease;
-            height: fit-content;
+            height: fixed;
         }
 
         .panel:hover {
@@ -390,6 +390,41 @@
         .language-toggle button:hover:not(.active) {
             background: rgba(255, 255, 255, 0.1);
         }
+
+        .theory-panel {
+            background-color: #f8f9fa;
+        }
+
+        .theory-subsection {
+            margin-top: 20px;
+        }
+
+        .theory-subsection h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .theory-subsection p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .theory-subsection ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .theory-subsection li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .theory-subsection .emoji {
+            font-size: 1.2rem;
+            margin-right: 10px;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -406,31 +441,31 @@
         <div class="main-content">
             <!-- Fuel Composition Panel -->
             <div class="panel">
-                <h2 id="fuel-title">Composición del Combustible (%)</h2>
+                <h2 id="fuel-title">Composición del Combustible (g)</h2>
                 <div class="input-group">
                     <div class="input-field">
                         <label for="carbon" id="carbon-label">Carbono (C)</label>
-                        <input type="number" id="carbon" step="0.01" value="85.0" min="0" max="100">
+                        <input type="number" id="carbon" step="0.01" value="85.0" min="0">
                     </div>
                     <div class="input-field">
                         <label for="hydrogen" id="hydrogen-label">Hidrógeno (H)</label>
-                        <input type="number" id="hydrogen" step="0.01" value="12.0" min="0" max="100">
+                        <input type="number" id="hydrogen" step="0.01" value="12.0" min="0">
                     </div>
                     <div class="input-field">
                         <label for="oxygen" id="oxygen-label">Oxígeno (O)</label>
-                        <input type="number" id="oxygen" step="0.01" value="2.0" min="0" max="100">
+                        <input type="number" id="oxygen" step="0.01" value="2.0" min="0">
                     </div>
                     <div class="input-field">
                         <label for="nitrogen" id="nitrogen-label">Nitrógeno (N)</label>
-                        <input type="number" id="nitrogen" step="0.01" value="0.8" min="0" max="100">
+                        <input type="number" id="nitrogen" step="0.01" value="0.8" min="0">
                     </div>
                     <div class="input-field">
                         <label for="sulfur" id="sulfur-label">Azufre (S)</label>
-                        <input type="number" id="sulfur" step="0.01" value="0.2" min="0" max="100">
+                        <input type="number" id="sulfur" step="0.01" value="0.2" min="0">
                     </div>
                     <div class="input-field">
                         <label for="water" id="water-label">Agua (H₂O)</label>
-                        <input type="number" id="water" step="0.01" value="0.0" min="0" max="100">
+                        <input type="number" id="water" step="0.01" value="0.0" min="0">
                     </div>
                 </div>
             </div>
@@ -521,7 +556,7 @@
             es: {
                 mainTitle: 'Simulador Triángulo de Oswald',
                 mainSubtitle: 'Herramienta de Análisis de Combustión para Composición de Combustible y Datos Orsat',
-                fuelTitle: 'Composición del Combustible (%)',
+                fuelTitle: 'Composición del Combustible (g)',
                 orsatTitle: 'Datos de Análisis Orsat (%)',
                 carbonLabel: 'Carbono (C)',
                 hydrogenLabel: 'Hidrógeno (H)',
@@ -551,7 +586,7 @@
             en: {
                 mainTitle: 'Oswald Triangle Simulator',
                 mainSubtitle: 'Combustion Analysis Tool for Fuel Composition and Orsat Data',
-                fuelTitle: 'Fuel Composition (%)',
+                fuelTitle: 'Fuel Composition (g)',
                 orsatTitle: 'Orsat Analysis Data (%)',
                 carbonLabel: 'Carbon (C)',
                 hydrogenLabel: 'Hydrogen (H)',
@@ -657,11 +692,7 @@
                 O2: parseFloat(document.getElementById('o2_measured').value) || 0
             };
 
-            // Validate fuel composition
             const totalComposition = fuel.C + fuel.H + fuel.O + fuel.N + fuel.S + fuel.H2O;
-            if (Math.abs(totalComposition - 100) > 0.1) {
-                alert(`Warning: Fuel composition totals ${totalComposition.toFixed(2)}% instead of 100%`);
-            }
 
             // Calculate molecular weights and stoichiometric coefficients
             const MW = { C: 12.01, H: 1.008, O: 15.999, N: 14.007, S: 32.06, H2O: 18.015 };
@@ -680,14 +711,20 @@
             const H_available = moles.H - 2 * moles.H2O;
             
             // Theoretical oxygen requirement for complete combustion (mol O2 per 100g fuel)
-            const O2_complete = moles.C + H_available/4 + moles.S - moles.O/2;
+            let O2_complete = moles.C + H_available/4 + moles.S - moles.O/2;
             
             // Theoretical oxygen requirement for incomplete combustion (only C to CO)
-            const O2_incomplete = moles.C/2 + H_available/4 + moles.S - moles.O/2;
-            
-            // Theoretical air requirements (21% O2 in air)
-            const air_complete = O2_complete / 0.21;
-            const air_incomplete = O2_incomplete / 0.21;
+            let O2_incomplete = moles.C/2 + H_available/4 + moles.S - moles.O/2;
+
+            let air_complete = 0;
+            if (O2_complete > 0) {
+                air_complete = O2_complete / 0.21;
+            }
+
+            let air_incomplete = 0;
+            if (O2_incomplete > 0) {
+                air_incomplete = O2_incomplete / 0.21;
+            }
             
             // Theoretical CO2 production for complete combustion
             const CO2_complete = moles.C;
@@ -698,15 +735,17 @@
             // Calculate kCO2 (maximum CO2 percentage in dry flue gas)
             const N2_complete = air_complete * 0.79 + moles.N;
             const total_dry_complete = CO2_complete + N2_complete;
-            const kCO2 = (CO2_complete / total_dry_complete) * 100;
+            const kCO2 = total_dry_complete > 0 ? (CO2_complete / total_dry_complete) * 100 : 0;
             
             // Calculate qO2 (oxygen percentage for incomplete combustion)
-            const N2_incomplete = air_incomplete * 0.79 + moles.N;
-            const total_dry_incomplete = CO_incomplete + N2_incomplete;
-            const qO2 = 21 - (21 * total_dry_incomplete) / (total_dry_incomplete + O2_incomplete);
+            const O2_remaining_incomplete = O2_complete > 0 ? O2_complete - O2_incomplete : 0;
+            const N2_for_qO2 = O2_complete > 0 ? (O2_complete / 0.21) * 0.79 + moles.N : moles.N;
+            const total_dry_gas_incomplete = CO_incomplete + N2_for_qO2 + O2_remaining_incomplete;
+            const qO2 = total_dry_gas_incomplete > 0 ? (O2_remaining_incomplete / total_dry_gas_incomplete) * 100 : 0;
             
             // Calculate pCO (CO percentage for incomplete combustion)
-            const pCO = (CO_incomplete / total_dry_incomplete) * 100;
+            const total_dry_incomplete_pCO = CO_incomplete + (air_incomplete * 0.79 + moles.N);
+            const pCO = total_dry_incomplete_pCO > 0 ? (CO_incomplete / total_dry_incomplete_pCO) * 100 : 0;
             
             // Calculate excess air from Orsat data
             const excess_air_ratio = (21 - orsat.CO2) / (21 - kCO2) - 1;
@@ -721,9 +760,11 @@
             // Oswald Triangle points calculation (using fractions 0-0.21)
             // Convert percentages to fractions for proper math
             const kCO2_frac = kCO2 / 100;
-            const qO2_frac = qO2 / 100;
+            let qO2_frac = qO2 / 100;
             const orsat_O2_frac = orsat.O2 / 100;
             const orsat_CO2_frac = orsat.CO2 / 100;
+
+            qO2_frac = Math.max(0, Math.min(qO2_frac, 0.21));
             
             // Point A: (0.21, 0) - Maximum excess air
             const pointA = { x: 0.21, y: 0 };
@@ -810,8 +851,8 @@
             const resultsGrid = document.getElementById('resultsGrid');
             resultsGrid.innerHTML = `
                 <div class="result-item">
-                    <div class="label">Total Fuel Composition</div>
-                    <div class="value">${calculationResults.total_composition}%</div>
+                    <div class="label">Masa Total de Combustible</div>
+                    <div class="value">${calculationResults.total_composition} g</div>
                 </div>
                 <div class="result-item">
                     <div class="label">Available Hydrogen</div>
@@ -841,10 +882,7 @@
                     <div class="label">qO₂ (Incomplete O₂%)</div>
                     <div class="value">${calculationResults.qO2}%</div>
                 </div>
-                <div class="result-item">
-                    <div class="label">pCO (CO%)</div>
-                    <div class="value">${calculationResults.pCO}%</div>
-                </div>
+
                 <div class="result-item">
                     <div class="label">Excess Air</div>
                     <div class="value">${calculationResults.excess_air_percent}%</div>
@@ -852,44 +890,6 @@
                 <div class="result-item">
                     <div class="label">Combustion Efficiency</div>
                     <div class="value">${calculationResults.combustion_efficiency}%</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Point A (O₂, CO₂)</div>
-                    <div class="value">(${calculationResults.pointA.x.toFixed(1)}, ${calculationResults.pointA.y.toFixed(1)})</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Point C (O₂, CO₂)</div>
-                    <div class="value">(${calculationResults.pointC.x.toFixed(1)}, ${calculationResults.pointC.y.toFixed(1)})</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Point D (O₂, CO₂)</div>
-                    <div class="value">(${calculationResults.pointD.x.toFixed(1)}, ${calculationResults.pointD.y.toFixed(1)})</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Experimental Point</div>
-                    <div class="value">(${calculationResults.experimentalPoint.x.toFixed(1)}, ${calculationResults.experimentalPoint.y.toFixed(1)})</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Intersection Point</div>
-                    <div class="value">(${calculationResults.intersection.x.toFixed(3)}, ${calculationResults.intersection.y.toFixed(3)})</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Perpendicular Intersection</div>
-                    <div class="value">(${calculationResults.perpendicular_intersection.x.toFixed(3)}, ${calculationResults.perpendicular_intersection.y.toFixed(3)})</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Slope AC (m_AC)</div>
-                    <div class="value">${calculationResults.m_AC}</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Slope Perpendicular (m_⊥)</div>
-                    <div class="value">${calculationResults.m_perp}</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Perpendicular Check</div>
-                    <div class="value" style="color: ${calculationResults.is_perpendicular ? '#22cc66' : '#cc2222'}">
-                        ${calculationResults.is_perpendicular ? '✓ Perpendicular' : '✗ Error'} (${calculationResults.perpendicular_check})
-                    </div>
                 </div>
             `;
         }
@@ -1314,5 +1314,44 @@
             }
         });
     </script>
+    <div class="container" id="theory-section">
+        <div class="panel theory-panel">
+            <h2 id="theory-title">Marco Teórico del Triángulo de Oswald</h2>
+            <p>El <strong>Triángulo de Oswald</strong> es una herramienta gráfica fundamental en la ingeniería de combustión. Permite analizar la composición de los gases de combustión secos (CO₂, O₂, y CO) para diagnosticar la eficiencia de un proceso de combustión y determinar la relación aire/combustible.</p>
+            
+            <div class="theory-subsection">
+                <h3 id="theory-subtitle-1">Construcción del Triángulo</h3>
+                <p>El triángulo se dibuja en un sistema de coordenadas donde el eje X representa el porcentaje de O₂ y el eje Y el porcentaje de CO₂. Los límites del triángulo están definidos por tres puntos teóricos clave:</p>
+                <ul>
+                    <li><span class="emoji">📍</span><strong>Punto A (Aire):</strong> Representa la composición del aire atmosférico (<strong>21% O₂, 0% CO₂</strong>). Es el punto de partida, antes de que ocurra la combustión.</li>
+                    <li><span class="emoji">🔥</span><strong>Punto C (Combustión Estequiométrica):</strong> Representa la combustión teórica perfecta, donde todo el combustible se quema con la cantidad exacta de aire. En este punto, la concentración de O₂ es cero y la de CO₂ es máxima (un valor conocido como <strong>kCO₂</strong>).</li>
+                    <li><span class="emoji">💨</span><strong>Punto D (Combustión Incompleta a CO):</strong> Representa una combustión teórica donde todo el carbono del combustible se convierte en monóxido de carbono (CO) en lugar de CO₂. La concentración de CO₂ es cero. La concentración de O₂ en este punto (<strong>qO₂</strong>) se calcula asumiendo que se suministra la misma cantidad de aire que para la combustión completa estequiométrica.</li>
+                </ul>
+            </div>
+
+            <div class="theory-subsection">
+                <h3 id="theory-subtitle-2">Interpretación de las Líneas</h3>
+                <ul>
+                    <li><strong>Línea AC (Línea de Combustión Completa):</strong> Conecta el punto de aire (A) con el de combustión estequiométrica (C). Cualquier punto sobre esta línea indica una combustión completa, pero con exceso de aire.</li>
+                    <li><strong>Línea CD (Línea de Combustión Incompleta):</strong> Conecta el punto C con el punto D. Los puntos en esta región representan una combustión con defecto de aire, donde coexisten CO y CO₂.</li>
+                </ul>
+            </div>
+
+            <div class="theory-subsection">
+                <h3 id="theory-subtitle-3">Análisis de Datos Reales (Punto Experimental)</h3>
+                <p>Al medir los gases de un equipo de combustión real (usando un analizador Orsat), se obtiene un punto experimental (O₂, CO₂). La ubicación de este punto en el diagrama revela el estado de la combustión:</p>
+                <ul>
+                    <li><strong>Sobre la línea AC:</strong> Combustión completa con exceso de aire.</li>
+                    <li><strong>Dentro del triángulo (a la izquierda de AC):</strong> Combustión incompleta con exceso de aire (presencia de CO).</li>
+                    <li><strong>Fuera del triángulo (a la izquierda de CD):</strong> Combustión muy ineficiente con falta de aire.</li>
+                </ul>
+            </div>
+
+            <div class="theory-subsection">
+                <h3 id="theory-subtitle-4">Nota sobre el valor pCO</h3>
+                <p>El valor <strong>pCO</strong> representa el porcentaje máximo teórico de CO que se produciría si toda la combustión fuera incompleta (C a CO) con la cantidad estequiométrica de aire para esa reacción. Este valor depende de la relación Carbono/Hidrógeno del combustible. Para combustibles hidrocarburos comunes, este valor no varía drásticamente, pero notará cambios significativos si compara, por ejemplo, carbono puro con un combustible con alto contenido de hidrógeno.</p>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
